@@ -637,6 +637,54 @@
         }
         .empty-state i { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; display: block; }
         .empty-state p { font-size: 0.85rem; }
+
+        /* ========= EXCHANGE RATE BANNER ========= */
+        .rate-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(124,58,237,0.08);
+            border: 1px solid rgba(124,58,237,0.2);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            font-size: 0.78rem;
+        }
+        .rate-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent2);
+            font-weight: 600;
+        }
+        .rate-banner-right {
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+        .rate-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+            flex-shrink: 0;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        .htg-preview {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-top: 8px;
+            font-size: 0.82rem;
+        }
+        .htg-preview-label { color: var(--muted); }
+        .htg-preview-value { color: var(--success); font-weight: 700; font-family: 'Syne', sans-serif; }
     </style>
 </head>
 <body>
@@ -780,6 +828,15 @@
             <p class="page-title">Recharger</p>
             <p class="page-subtitle">Envoyez via Natcash puis soumettez votre demande</p>
 
+            <!-- Exchange Rate Banner -->
+            <div class="rate-banner" id="rate-banner">
+                <div class="rate-banner-left">
+                    <div class="rate-dot"></div>
+                    <span id="rate-banner-text">Chargement du taux…</span>
+                </div>
+                <div class="rate-banner-right" id="rate-banner-time">–</div>
+            </div>
+
             <div class="card">
                 <div class="alert alert-info" style="display:block; margin-bottom:16px;">
                     <i class="fas fa-info-circle"></i> <strong>Instructions Natcash</strong>
@@ -807,8 +864,15 @@
                 <div id="recharge-success" class="alert alert-success" style="display:none;"></div>
 
                 <div class="form-group">
-                    <label>Montant (USD)</label>
-                    <input type="number" id="rch-amount" placeholder="Ex: 10" min="1" step="0.01">
+                    <label>Montant en Gourdes (HTG) 🇭🇹</label>
+                    <input type="number" id="rch-amount-htg" placeholder="Ex: 1500 HTG" min="1" step="1" oninput="onHTGInput()">
+                    <!-- Conversion preview -->
+                    <div class="htg-preview" id="htg-conversion-preview" style="display:none;">
+                        <span class="htg-preview-label">≈ Équivalent USD</span>
+                        <span class="htg-preview-value" id="htg-usd-preview">$0.00</span>
+                    </div>
+                    <!-- Hidden USD field used for submission -->
+                    <input type="hidden" id="rch-amount">
                 </div>
                 <div class="form-group">
                     <label>Méthode de dépôt</label>
@@ -1247,10 +1311,116 @@
         homeRecent.innerHTML = transactions.slice(0, 3).map(makeItem).join('');
     }
 
+    // ===== EXCHANGE RATE (HTG) =====
+    let exchangeRate = 131.15; // fallback rate
+    let lastFetchTime = 0;
+    const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+    async function loadExchangeRate() {
+        const now = Date.now();
+        if (now - lastFetchTime < CACHE_DURATION && lastFetchTime > 0) {
+            displayExchangeRate();
+            return;
+        }
+
+        // Try API 1: fawazahmed0 (free, no key, CORS OK, updated daily)
+        try {
+            const r = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
+            if (!r.ok) throw new Error('cdn error');
+            const d = await r.json();
+            const rate = d?.usd?.htg;
+            if (rate && rate > 0) {
+                exchangeRate = rate;
+                lastFetchTime = now;
+                console.log(`✅ [API1] 1 USD = ${exchangeRate} HTG`);
+                displayExchangeRate();
+                return;
+            }
+            throw new Error('HTG manquant dans API1');
+        } catch (e1) {
+            console.warn('API1 échouée, essai API2…', e1.message);
+        }
+
+        // Try API 2: open.er-api.com (free, no key, CORS OK)
+        try {
+            const r = await fetch('https://open.er-api.com/v6/latest/USD');
+            if (!r.ok) throw new Error('er-api error');
+            const d = await r.json();
+            const rate = d?.rates?.HTG;
+            if (rate && rate > 0) {
+                exchangeRate = rate;
+                lastFetchTime = now;
+                console.log(`✅ [API2] 1 USD = ${exchangeRate} HTG`);
+                displayExchangeRate();
+                return;
+            }
+            throw new Error('HTG manquant dans API2');
+        } catch (e2) {
+            console.warn('API2 échouée, essai API3…', e2.message);
+        }
+
+        // Try API 3: fawazahmed0 fallback URL (mirror)
+        try {
+            const r = await fetch('https://latest.currency-api.pages.dev/v1/currencies/usd.json');
+            if (!r.ok) throw new Error('mirror error');
+            const d = await r.json();
+            const rate = d?.usd?.htg;
+            if (rate && rate > 0) {
+                exchangeRate = rate;
+                lastFetchTime = now;
+                console.log(`✅ [API3] 1 USD = ${exchangeRate} HTG`);
+                displayExchangeRate();
+                return;
+            }
+            throw new Error('HTG manquant dans API3');
+        } catch (e3) {
+            console.warn('Toutes les APIs ont échoué. Taux de secours utilisé.', e3.message);
+        }
+
+        // All failed — use hardcoded fallback, mark as estimate
+        displayExchangeRate(true);
+    }
+
+    function displayExchangeRate(isFallback = false) {
+        const bannerText = document.getElementById('rate-banner-text');
+        const bannerTime = document.getElementById('rate-banner-time');
+        const dot = document.querySelector('.rate-dot');
+        if (bannerText) {
+            bannerText.textContent = `1 USD = ${exchangeRate.toFixed(2)} HTG`;
+        }
+        if (bannerTime) {
+            bannerTime.textContent = isFallback ? '⚠️ Taux estimé' : 'Mis à jour aujourd\'hui';
+        }
+        if (dot) {
+            dot.style.background = isFallback ? 'var(--warning)' : 'var(--success)';
+        }
+    }
+
+    window.onHTGInput = () => {
+        const htgVal = parseFloat(document.getElementById('rch-amount-htg').value);
+        const preview = document.getElementById('htg-conversion-preview');
+        const usdPreview = document.getElementById('htg-usd-preview');
+        const hiddenUsd = document.getElementById('rch-amount');
+
+        if (!htgVal || htgVal <= 0) {
+            preview.style.display = 'none';
+            hiddenUsd.value = '';
+            return;
+        }
+        const usdAmount = htgVal / exchangeRate;
+        hiddenUsd.value = usdAmount.toFixed(4);
+        usdPreview.textContent = `$${usdAmount.toFixed(2)}`;
+        preview.style.display = 'flex';
+    };
+
+    // Load rate on startup
+    loadExchangeRate();
+
     // ===== RECHARGE =====
     window.submitRecharge = async () => {
         if (!currentUser) return;
 
+        const htgAmount = parseFloat(document.getElementById('rch-amount-htg').value);
         const amount = parseFloat(document.getElementById('rch-amount').value);
         const method = document.getElementById('rch-method').value;
         const transcode = document.getElementById('rch-transcode').value.trim();
@@ -1261,7 +1431,8 @@
         errEl.style.display = 'none';
         sucEl.style.display = 'none';
 
-        if (!amount || amount <= 0) { errEl.textContent = 'Montant invalide.'; errEl.style.display = 'block'; return; }
+        if (!htgAmount || htgAmount <= 0) { errEl.textContent = 'Veuillez entrer un montant en HTG valide.'; errEl.style.display = 'block'; return; }
+        if (!amount || amount <= 0) { errEl.textContent = 'Erreur de conversion HTG → USD. Réessayez.'; errEl.style.display = 'block'; return; }
         if (!transcode) { errEl.textContent = 'Le transcode est requis.'; errEl.style.display = 'block'; return; }
         if (!email) { errEl.textContent = 'L\'email est requis.'; errEl.style.display = 'block'; return; }
 
@@ -1272,6 +1443,8 @@
                 type: 'recharge',
                 label: `Recharge Natcash`,
                 amount: amount,
+                amountHTG: htgAmount,
+                rateUsed: exchangeRate,
                 method: method,
                 transcode: transcode,
                 email: email,
@@ -1284,6 +1457,8 @@
                 userId: currentUser.uid,
                 email: email,
                 amount: amount,
+                amountHTG: htgAmount,
+                rateUsed: exchangeRate,
                 method: method,
                 transcode: transcode,
                 status: 'pending',
@@ -1294,12 +1469,14 @@
             const newPending = (userData.pendingBalance || 0) + amount;
             await update(ref(db, `users/${currentUser.uid}/profile`), { pendingBalance: newPending });
 
-            sucEl.textContent = '✅ Demande envoyée ! Votre solde sera crédité après vérification (5–15 min).';
+            sucEl.textContent = `✅ Demande envoyée ! ${htgAmount.toLocaleString('fr')} HTG ≈ $${amount.toFixed(2)} USD — Votre solde sera crédité après vérification (5–15 min).`;
             sucEl.style.display = 'block';
 
+            document.getElementById('rch-amount-htg').value = '';
             document.getElementById('rch-amount').value = '';
             document.getElementById('rch-transcode').value = '';
             document.getElementById('rch-email').value = '';
+            document.getElementById('htg-conversion-preview').style.display = 'none';
 
         } catch (e) {
             errEl.textContent = 'Erreur: ' + e.message;
@@ -1482,6 +1659,9 @@
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });
+
+        // Refresh exchange rate when visiting recharge
+        if (viewId === 'recharge') loadExchangeRate();
     };
 
     // ===== TOAST =====
