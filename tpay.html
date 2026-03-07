@@ -233,20 +233,57 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 14px 8px;
+            padding: 12px 8px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.22s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .game-tile::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 60%, rgba(167,139,250,0.05));
+            opacity: 0;
+            transition: opacity 0.2s;
         }
         .game-tile:active, .game-tile:hover {
             border-color: var(--accent);
             background: var(--surface2);
-            transform: scale(0.97);
+            transform: scale(0.96);
+            box-shadow: 0 4px 20px rgba(124,58,237,0.15);
         }
+        .game-tile:hover::before { opacity: 1; }
         .game-icon {
             font-size: 1.6rem;
             margin-bottom: 6px;
             display: block;
+        }
+        .game-img-wrap {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 8px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--surface2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+        .game-tile:hover .game-img-wrap {
+            transform: scale(1.05);
+        }
+        .game-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .game-img-fallback {
+            font-size: 1.6rem;
         }
         .game-name {
             font-size: 0.62rem;
@@ -399,6 +436,78 @@
         }
         .nav-item i { font-size: 1.2rem; margin-bottom: 4px; }
         .nav-item.active { color: var(--accent2); }
+
+        /* ========= GAME SELECT WITH LOGO ========= */
+        .game-select-wrapper {
+            position: relative;
+        }
+        .game-select-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .game-select-display:hover { border-color: var(--accent); }
+        .game-select-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .game-select-logo-emoji {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .game-select-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            z-index: 500;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .game-select-dropdown.open { display: block; }
+        .game-select-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 0.9rem;
+        }
+        .game-select-option:hover { background: var(--surface2); }
+        .game-select-option.selected { background: rgba(124,58,237,0.1); color: var(--accent2); }
+        .game-select-chevron {
+            margin-left: auto;
+            color: var(--muted);
+            transition: transform 0.2s;
+            font-size: 0.8rem;
+        }
+        .game-select-dropdown.open + .game-select-chevron,
+        .game-select-display.open .game-select-chevron { transform: rotate(180deg); }
 
         /* ========= TOPUP PACKAGES ========= */
         .pkg-grid {
@@ -619,27 +728,44 @@
             <p class="section-title">Jeux disponibles</p>
             <div class="game-grid">
                 <div class="game-tile" onclick="openGame('freefire')">
-                    <span class="game-icon">🔥</span>
+                    <div class="game-img-wrap">
+                        <img src="freefire.png" alt="Free Fire" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">🔥</span>
+                    </div>
                     <span class="game-name">Free Fire</span>
                 </div>
                 <div class="game-tile" onclick="openGame('roblox')">
-                    <span class="game-icon">🟥</span>
+                    <div class="game-img-wrap">
+                        <img src="roblox.png" alt="Roblox" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">🟥</span>
+                    </div>
                     <span class="game-name">Roblox</span>
                 </div>
                 <div class="game-tile" onclick="openGame('fortnite')">
-                    <span class="game-icon">⚡</span>
+                    <div class="game-img-wrap">
+                        <img src="fortnite.png" alt="Fortnite" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">⚡</span>
+                    </div>
                     <span class="game-name">Fortnite</span>
                 </div>
                 <div class="game-tile" onclick="openGame('pubg')">
-                    <span class="game-icon">🪖</span>
+                    <div class="game-img-wrap">
+                        <img src="purgmobile.png" alt="PUBG Mobile" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">🪖</span>
+                    </div>
                     <span class="game-name">PUBG Mobile</span>
                 </div>
                 <div class="game-tile" onclick="openGame('mlbb')">
-                    <span class="game-icon">🗡️</span>
+                    <div class="game-img-wrap">
+                        <img src="mobilelegendes.png" alt="Mobile Legends" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">🗡️</span>
+                    </div>
                     <span class="game-name">Mobile Legends</span>
                 </div>
                 <div class="game-tile" onclick="switchView('topup', 3)" style="background: linear-gradient(135deg, #1a0533, #2d1052); border-color: #5b21b6;">
-                    <span class="game-icon">🎮</span>
+                    <div class="game-img-wrap" style="background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.2);">
+                        <span style="font-size:1.4rem;">🎮</span>
+                    </div>
                     <span class="game-name" style="color: #a78bfa;">Voir tout</span>
                 </div>
             </div>
@@ -716,12 +842,47 @@
             <div class="card">
                 <div class="form-group">
                     <label>Sélectionner le jeu</label>
-                    <select id="game-select" onchange="updateGamePackages()">
-                        <option value="freefire">🔥 Garena Free Fire</option>
-                        <option value="roblox">🟥 Roblox</option>
-                        <option value="fortnite">⚡ Fortnite</option>
-                        <option value="pubg">🪖 PUBG Mobile</option>
-                        <option value="mlbb">🗡️ Mobile Legends: Bang Bang</option>
+                    <div class="game-select-wrapper" id="game-select-wrapper">
+                        <div class="game-select-display" id="game-select-display" onclick="toggleGameDropdown()">
+                            <div class="game-select-logo-emoji" id="gsd-icon">🔥</div>
+                            <span id="gsd-name">Garena Free Fire</span>
+                            <i class="fas fa-chevron-down game-select-chevron" id="gsd-chevron"></i>
+                        </div>
+                        <div class="game-select-dropdown" id="game-select-dropdown">
+                            <div class="game-select-option selected" onclick="chooseGame('freefire','Garena Free Fire','freefire.png','🔥',this)">
+                                <img class="game-select-logo" src="freefire.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">🔥</span>
+                                <span>Garena Free Fire</span>
+                            </div>
+                            <div class="game-select-option" onclick="chooseGame('roblox','Roblox','roblox.png','🟥',this)">
+                                <img class="game-select-logo" src="roblox.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">🟥</span>
+                                <span>Roblox</span>
+                            </div>
+                            <div class="game-select-option" onclick="chooseGame('fortnite','Fortnite','fortnite.png','⚡',this)">
+                                <img class="game-select-logo" src="fortnite.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">⚡</span>
+                                <span>Fortnite</span>
+                            </div>
+                            <div class="game-select-option" onclick="chooseGame('pubg','PUBG Mobile','purgmobile.png','🪖',this)">
+                                <img class="game-select-logo" src="purgmobile.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">🪖</span>
+                                <span>PUBG Mobile</span>
+                            </div>
+                            <div class="game-select-option" onclick="chooseGame('mlbb','Mobile Legends: Bang Bang','mobilelegendes.png','🗡️',this)">
+                                <img class="game-select-logo" src="mobilelegendes.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">🗡️</span>
+                                <span>Mobile Legends: Bang Bang</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Hidden select for compatibility -->
+                    <select id="game-select" style="display:none;" onchange="updateGamePackages()">
+                        <option value="freefire">Garena Free Fire</option>
+                        <option value="roblox">Roblox</option>
+                        <option value="fortnite">Fortnite</option>
+                        <option value="pubg">PUBG Mobile</option>
+                        <option value="mlbb">Mobile Legends: Bang Bang</option>
                     </select>
                 </div>
 
@@ -1046,7 +1207,6 @@
 
         const makeItem = (tx) => {
             const isDebit = tx.type === 'topup';
-            const icon = tx.gameIcon || (isDebit ? '🎮' : '💰');
             const badge = tx.status === 'pending'
                 ? '<span class="badge badge-pending">En attente</span>'
                 : '<span class="badge badge-success">Succès</span>';
@@ -1054,10 +1214,21 @@
             const amtPrefix = isDebit ? '-' : '+';
             const date = tx.createdAt ? new Date(tx.createdAt).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : 'Récent';
 
+            // Build icon: use game image if topup, else wallet icon
+            const GAME_IMGS = { freefire:'freefire.png', roblox:'roblox.png', fortnite:'fortnite.png', pubg:'purgmobile.png', mlbb:'mobilelegendes.png' };
+            let iconHtml;
+            if (isDebit && tx.gameKey && GAME_IMGS[tx.gameKey]) {
+                iconHtml = `<img src="${GAME_IMGS[tx.gameKey]}" alt="${tx.gameName||''}" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.outerHTML='<span style=\\'font-size:1.3rem;\\'>${tx.gameIcon||'🎮'}</span>'">`;
+            } else if (isDebit) {
+                iconHtml = `<span style="font-size:1.3rem;">${tx.gameIcon||'🎮'}</span>`;
+            } else {
+                iconHtml = `<i class="fas fa-wallet" style="font-size:1.1rem;color:var(--success);"></i>`;
+            }
+
             return `
                 <div class="history-item">
                     <div class="history-left">
-                        <div class="history-icon">${icon}</div>
+                        <div class="history-icon">${iconHtml}</div>
                         <div>
                             <div class="history-name">${tx.label}</div>
                             <div class="history-date">${date}</div>
@@ -1137,6 +1308,14 @@
     };
 
     // ===== TOP-UP PACKAGES =====
+    const GAME_IMAGES = {
+        freefire: 'freefire.png',
+        roblox: 'roblox.png',
+        fortnite: 'fortnite.png',
+        pubg: 'purgmobile.png',
+        mlbb: 'mobilelegendes.png'
+    };
+
     window.updateGamePackages = () => {
         const gameKey = document.getElementById('game-select').value;
         currentGameKey = gameKey;
@@ -1148,6 +1327,27 @@
         document.getElementById('pay-btn').style.display = 'none';
 
         const grid = document.getElementById('pkg-grid');
+        const imgSrc = GAME_IMAGES[gameKey] || '';
+
+        // Show game header banner above packages
+        let pkgHeader = document.getElementById('pkg-game-header');
+        if (!pkgHeader) {
+            pkgHeader = document.createElement('div');
+            pkgHeader.id = 'pkg-game-header';
+            pkgHeader.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;';
+            grid.parentNode.insertBefore(pkgHeader, grid);
+        }
+        pkgHeader.innerHTML = `
+            <div style="width:40px;height:40px;border-radius:10px;overflow:hidden;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <img src="${imgSrc}" alt="${game.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                <span style="font-size:1.3rem;display:none;">${game.icon}</span>
+            </div>
+            <div>
+                <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;">${game.name}</div>
+                <div style="font-size:0.72rem;color:var(--muted);">Monnaie: ${game.currency} · Commission: ${(game.commission * 100).toFixed(0)}%</div>
+            </div>
+        `;
+
         grid.innerHTML = game.packages.map((pkg, i) => `
             <div class="pkg-option" id="pkg-${i}" onclick="selectPackage(${i})">
                 <div class="pkg-currency">${game.currency}</div>
@@ -1305,6 +1505,59 @@
         };
         return map[code] || 'Une erreur est survenue. Réessayez.';
     }
+
+    // ===== CUSTOM GAME DROPDOWN =====
+    window.toggleGameDropdown = () => {
+        const dd = document.getElementById('game-select-dropdown');
+        const chevron = document.getElementById('gsd-chevron');
+        dd.classList.toggle('open');
+        chevron.style.transform = dd.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+    };
+
+    window.chooseGame = (key, name, imgSrc, emoji, el) => {
+        // Update hidden select
+        const sel = document.getElementById('game-select');
+        sel.value = key;
+
+        // Update display
+        const iconEl = document.getElementById('gsd-icon');
+        const nameEl = document.getElementById('gsd-name');
+
+        // Try image first, fallback to emoji
+        const img = new Image();
+        img.onload = () => {
+            iconEl.innerHTML = `<img src="${imgSrc}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">`;
+        };
+        img.onerror = () => {
+            iconEl.textContent = emoji;
+        };
+        img.src = imgSrc;
+        nameEl.textContent = name;
+
+        // Mark selected
+        document.querySelectorAll('.game-select-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+
+        // Close dropdown
+        const dd = document.getElementById('game-select-dropdown');
+        dd.classList.remove('open');
+        document.getElementById('gsd-chevron').style.transform = 'rotate(0deg)';
+
+        // Update packages
+        updateGamePackages();
+    };
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+        const wrapper = document.getElementById('game-select-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            const dd = document.getElementById('game-select-dropdown');
+            if (dd) {
+                dd.classList.remove('open');
+                document.getElementById('gsd-chevron').style.transform = 'rotate(0deg)';
+            }
+        }
+    });
 
     // Init packages on load
     setTimeout(() => {
