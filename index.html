@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TPay – Gaming Wallet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #0d0d14;
+            --surface: #16161f;
+            --surface2: #1e1e2a;
+            --border: #2a2a3a;
+            --accent: #7c3aed;
+            --accent2: #a78bfa;
+            --success: #10b981;
+            --danger: #f43f5e;
+            --warning: #f59e0b;
+            --text: #f1f0f9;
+            --muted: #6b6b8a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+
+        /* ========= AUTH SCREEN ========= */
+        #auth-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 30px 24px;
+            background: radial-gradient(ellipse at 60% 0%, #2d1052 0%, #0d0d14 60%);
+        }
+
+        .auth-logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 2.8rem;
+            letter-spacing: -2px;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+        .auth-logo span { color: var(--accent2); }
+        .auth-tagline {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px 24px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+        .auth-tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* ========= APP SCREEN ========= */
+        #app-screen { display: none; }
+
+        header {
+            position: fixed; top: 0; width: 100%; height: 60px;
+            background: rgba(13,13,20,0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex; align-items: center;
+            justify-content: space-between; padding: 0 20px;
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+        }
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800; font-size: 1.4rem;
+            letter-spacing: -1px; color: var(--text);
+        }
+        .logo span { color: var(--accent2); }
+
+        .header-right {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .header-uid {
+            font-size: 0.7rem;
+            color: var(--muted);
+            background: var(--surface2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+        .logout-btn {
+            background: none; border: none;
+            color: var(--muted); cursor: pointer;
+            font-size: 1rem; padding: 4px;
+        }
+
+        /* ========= VIEWS ========= */
+        main { padding: 70px 0 0 0; }
+        .view { display: none; padding: 16px 20px; animation: fadeUp 0.25s ease; }
+        .view.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ========= CARDS ========= */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        /* ========= WALLET CARD ========= */
+        .wallet-card {
+            background: linear-gradient(135deg, #1a0533 0%, #2d1052 50%, #1a0533 100%);
+            border: 1px solid #5b21b6;
+            border-radius: 22px;
+            padding: 24px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .wallet-card::before {
+            content: '';
+            position: absolute;
+            top: -30px; right: -30px;
+            width: 140px; height: 140px;
+            background: radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .wallet-card::after {
+            content: '';
+            position: absolute;
+            bottom: -20px; left: 30px;
+            width: 100px; height: 100px;
+            background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .balance-label {
+            font-size: 0.7rem;
+            color: rgba(167,139,250,0.7);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+        .balance-amount {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 6px 0 2px;
+            letter-spacing: -1px;
+        }
+        .balance-pending {
+            font-size: 0.75rem;
+            color: var(--warning);
+            margin-bottom: 18px;
+        }
+        .wallet-actions {
+            display: flex; gap: 10px;
+        }
+        .wallet-btn {
+            flex: 1;
+            border: none;
+            border-radius: 12px;
+            padding: 11px 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .wallet-btn-primary { background: var(--accent2); color: #1a0533; }
+        .wallet-btn-secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.15); }
+
+        /* ========= SECTION TITLE ========= */
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 14px;
+        }
+
+        /* ========= GAME GRID ========= */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .game-tile {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .game-tile::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 60%, rgba(167,139,250,0.05));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .game-tile:active, .game-tile:hover {
+            border-color: var(--accent);
+            background: var(--surface2);
+            transform: scale(0.96);
+            box-shadow: 0 4px 20px rgba(124,58,237,0.15);
+        }
+        .game-tile:hover::before { opacity: 1; }
+        .game-icon {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .game-img-wrap {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 8px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--surface2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+        .game-tile:hover .game-img-wrap {
+            transform: scale(1.05);
+        }
+        .game-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .game-img-fallback {
+            font-size: 1.6rem;
+        }
+        .game-name {
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: var(--muted);
+            line-height: 1.2;
+        }
+
+        /* ========= FORMS ========= */
+        .form-group { margin-bottom: 14px; }
+        label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent); }
+        input::placeholder { color: var(--muted); }
+        select option { background: var(--surface2); }
+
+        /* ========= BTN ========= */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.3px;
+        }
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--muted);
+            border: 1px solid var(--border);
+            margin-top: 10px;
+        }
+        .btn-success { background: var(--success); }
+        .btn-disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+
+        /* ========= ALERTS ========= */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-bottom: 14px;
+        }
+        .alert-error { background: rgba(244,63,94,0.12); color: var(--danger); border: 1px solid rgba(244,63,94,0.3); }
+        .alert-success { background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+        .alert-info { background: rgba(124,58,237,0.12); color: var(--accent2); border: 1px solid rgba(124,58,237,0.3); }
+        .alert-warning { background: rgba(245,158,11,0.12); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
+
+        /* ========= PRICE SUMMARY ========= */
+        .price-box {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+        .price-row:last-child { margin-bottom: 0; }
+        .price-row.total {
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+            margin-top: 4px;
+            color: var(--accent2);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* ========= HISTORY ITEMS ========= */
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            margin-bottom: 10px;
+        }
+        .history-left { display: flex; align-items: center; gap: 12px; }
+        .history-icon {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            background: var(--surface2);
+        }
+        .history-name { font-weight: 600; font-size: 0.9rem; }
+        .history-date { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+        .history-amount { font-weight: 700; font-size: 0.95rem; }
+        .badge {
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-success { background: rgba(16,185,129,0.15); color: var(--success); }
+        .badge-pending { background: rgba(245,158,11,0.15); color: var(--warning); }
+
+        /* ========= NAV ========= */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; height: 72px;
+            background: rgba(13,13,20,0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex; align-items: center;
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+        }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; cursor: pointer;
+            color: var(--muted); font-size: 0.6rem;
+            font-weight: 600; padding: 10px 4px;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 4px; }
+        .nav-item.active { color: var(--accent2); }
+
+        /* ========= GAME SELECT WITH LOGO ========= */
+        .game-select-wrapper {
+            position: relative;
+        }
+        .game-select-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .game-select-display:hover { border-color: var(--accent); }
+        .game-select-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .game-select-logo-emoji {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .game-select-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            z-index: 500;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .game-select-dropdown.open { display: block; }
+        .game-select-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 0.9rem;
+        }
+        .game-select-option:hover { background: var(--surface2); }
+        .game-select-option.selected { background: rgba(124,58,237,0.1); color: var(--accent2); }
+        .game-select-chevron {
+            margin-left: auto;
+            color: var(--muted);
+            transition: transform 0.2s;
+            font-size: 0.8rem;
+        }
+        .game-select-dropdown.open + .game-select-chevron,
+        .game-select-display.open .game-select-chevron { transform: rotate(180deg); }
+
+        /* ========= TOPUP PACKAGES ========= */
+        .pkg-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .pkg-option {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pkg-option.selected {
+            border-color: var(--accent);
+            background: rgba(124,58,237,0.1);
+        }
+        .pkg-currency { font-size: 0.75rem; color: var(--muted); margin-bottom: 2px; }
+        .pkg-amount { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--text); }
+        .pkg-price { font-size: 0.75rem; color: var(--accent2); margin-top: 4px; font-weight: 600; }
+
+        /* ========= RECHARGE STEPS ========= */
+        .step {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+        .step-num {
+            width: 28px; height: 28px; min-width: 28px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .step-text {
+            font-size: 0.85rem;
+            color: var(--muted);
+            padding-top: 5px;
+            line-height: 1.5;
+        }
+        .step-text strong { color: var(--text); }
+
+        /* ========= PROFILE ========= */
+        .profile-avatar {
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 12px;
+        }
+
+        /* ========= TOAST ========= */
+        #toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s;
+            white-space: nowrap;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ========= LOADING ========= */
+        #loading-overlay {
+            position: fixed; inset: 0;
+            background: var(--bg);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 9999;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ========= MISC ========= */
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .page-subtitle {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 14px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--muted);
+        }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; display: block; }
+        .empty-state p { font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <div style="font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; letter-spacing:-0.5px;">
+        T<span style="color:#a78bfa">PAY</span>.
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="auth-screen">
+    <div class="auth-logo">T<span>PAY</span>.</div>
+    <p class="auth-tagline">Votre wallet gaming, simple et rapide</p>
+
+    <div class="auth-card">
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="authTab('login')">Connexion</div>
+            <div class="auth-tab" onclick="authTab('register')">Créer un compte</div>
+        </div>
+
+        <div id="auth-error" class="alert alert-error" style="display:none;"></div>
+
+        <!-- Login -->
+        <div id="tab-login">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="exemple@email.com">
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" id="login-pass" placeholder="••••••••">
+            </div>
+            <button class="btn" onclick="doLogin()">Se connecter</button>
+        </div>
+
+        <!-- Register -->
+        <div id="tab-register" style="display:none;">
+            <div class="form-group">
+                <label>Nom d'affichage</label>
+                <input type="text" id="reg-name" placeholder="Ex: John Doe">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="reg-email" placeholder="exemple@email.com">
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" id="reg-pass" placeholder="Min. 6 caractères">
+            </div>
+            <button class="btn" onclick="doRegister()">Créer mon compte</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== APP SCREEN ===== -->
+<div id="app-screen">
+    <header>
+        <div class="logo">T<span>PAY</span>.</div>
+        <div class="header-right">
+            <div class="header-uid" id="header-uid">...</div>
+            <button class="logout-btn" onclick="doLogout()" title="Déconnexion"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- HOME -->
+        <section id="home" class="view active">
+            <div class="wallet-card">
+                <p class="balance-label">Mon Solde</p>
+                <p class="balance-amount" id="main-balance">$0.00</p>
+                <p class="balance-pending" id="pending-balance" style="display:none;">⏳ <span id="pending-amt"></span> en attente de validation</p>
+                <div class="wallet-actions">
+                    <button class="wallet-btn wallet-btn-primary" onclick="switchView('recharge', 2)">
+                        <i class="fas fa-plus"></i> Recharger
+                    </button>
+                    <button class="wallet-btn wallet-btn-secondary" onclick="switchView('topup', 3)">
+                        <i class="fas fa-gamepad"></i> Top-Up
+                    </button>
+                </div>
+            </div>
+
+            <p class="section-title">Jeux disponibles</p>
+            <div class="game-grid">
+                <div class="game-tile" onclick="openGame('freefire')">
+                    <div class="game-img-wrap">
+                        <img src="freefire.png" alt="Free Fire" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">🔥</span>
+                    </div>
+                    <span class="game-name">Free Fire</span>
+                </div>
+                <div class="game-tile" onclick="openGame('roblox')">
+                    <div class="game-img-wrap">
+                        <img src="roblox.png" alt="Roblox" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">🟥</span>
+                    </div>
+                    <span class="game-name">Roblox</span>
+                </div>
+                <div class="game-tile" onclick="openGame('fortnite')">
+                    <div class="game-img-wrap">
+                        <img src="fortnite.png" alt="Fortnite" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">⚡</span>
+                    </div>
+                    <span class="game-name">Fortnite</span>
+                </div>
+                <div class="game-tile" onclick="openGame('pubg')">
+                    <div class="game-img-wrap">
+                        <img src="purgmobile.png" alt="PUBG Mobile" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">🪖</span>
+                    </div>
+                    <span class="game-name">PUBG Mobile</span>
+                </div>
+                <div class="game-tile" onclick="openGame('mlbb')">
+                    <div class="game-img-wrap">
+                        <img src="mobilelegendes.png" alt="Mobile Legends" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <span class="game-img-fallback" style="display:none;">🗡️</span>
+                    </div>
+                    <span class="game-name">Mobile Legends</span>
+                </div>
+                <div class="game-tile" onclick="switchView('topup', 3)" style="background: linear-gradient(135deg, #1a0533, #2d1052); border-color: #5b21b6;">
+                    <div class="game-img-wrap" style="background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.2);">
+                        <span style="font-size:1.4rem;">🎮</span>
+                    </div>
+                    <span class="game-name" style="color: #a78bfa;">Voir tout</span>
+                </div>
+            </div>
+
+            <!-- Recent transactions -->
+            <p class="section-title">Activité récente</p>
+            <div id="home-recent"></div>
+        </section>
+
+        <!-- RECHARGE -->
+        <section id="recharge" class="view">
+            <p class="page-title">Recharger</p>
+            <p class="page-subtitle">Envoyez via Natcash puis soumettez votre demande</p>
+
+            <div class="card">
+                <div class="alert alert-info" style="display:block; margin-bottom:16px;">
+                    <i class="fas fa-info-circle"></i> <strong>Instructions Natcash</strong>
+                </div>
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Envoyez le montant via <strong>Natcash</strong> au numéro <strong>55865621</strong></div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">Copiez le <strong>code de transaction</strong> (transcode) reçu</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">Remplissez le formulaire ci-dessous et validez</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-text">Votre solde sera crédité après <strong>vérification manuelle</strong> (5–15 min)</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div id="recharge-error" class="alert alert-error" style="display:none;"></div>
+                <div id="recharge-success" class="alert alert-success" style="display:none;"></div>
+
+                <div class="form-group">
+                    <label>Montant (USD)</label>
+                    <input type="number" id="rch-amount" placeholder="Ex: 10" min="1" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Méthode de dépôt</label>
+                    <select id="rch-method">
+                        <option value="Natcash">Natcash</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Transcode de transfert</label>
+                    <input type="text" id="rch-transcode" placeholder="Ex: NAT-XXXX-XXXX">
+                </div>
+                <div class="form-group">
+                    <label>Email de confirmation</label>
+                    <input type="email" id="rch-email" placeholder="votre@email.com">
+                </div>
+                <button class="btn btn-success" onclick="submitRecharge()">
+                    <i class="fas fa-paper-plane"></i> Valider la recharge
+                </button>
+                <button class="btn btn-secondary" onclick="switchView('home', 0)">Annuler</button>
+            </div>
+        </section>
+
+        <!-- TOP-UP / GAMING -->
+        <section id="topup" class="view">
+            <p class="page-title">Gaming Top-Up</p>
+            <p class="page-subtitle">Rechargez votre jeu directement</p>
+
+            <div id="topup-error" class="alert alert-error" style="display:none;"></div>
+            <div id="topup-success" class="alert alert-success" style="display:none;"></div>
+
+            <div class="card">
+                <div class="form-group">
+                    <label>Sélectionner le jeu</label>
+                    <div class="game-select-wrapper" id="game-select-wrapper">
+                        <div class="game-select-display" id="game-select-display" onclick="toggleGameDropdown()">
+                            <div class="game-select-logo-emoji" id="gsd-icon">🔥</div>
+                            <span id="gsd-name">Garena Free Fire</span>
+                            <i class="fas fa-chevron-down game-select-chevron" id="gsd-chevron"></i>
+                        </div>
+                        <div class="game-select-dropdown" id="game-select-dropdown">
+                            <div class="game-select-option selected" onclick="chooseGame('freefire','Garena Free Fire','freefire.png','🔥',this)">
+                                <img class="game-select-logo" src="freefire.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">🔥</span>
+                                <span>Garena Free Fire</span>
+                            </div>
+                            <div class="game-select-option" onclick="chooseGame('roblox','Roblox','roblox.png','🟥',this)">
+                                <img class="game-select-logo" src="roblox.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">🟥</span>
+                                <span>Roblox</span>
+                            </div>
+                            <div class="game-select-option" onclick="chooseGame('fortnite','Fortnite','fortnite.png','⚡',this)">
+                                <img class="game-select-logo" src="fortnite.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">⚡</span>
+                                <span>Fortnite</span>
+                            </div>
+                            <div class="game-select-option" onclick="chooseGame('pubg','PUBG Mobile','purgmobile.png','🪖',this)">
+                                <img class="game-select-logo" src="purgmobile.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">🪖</span>
+                                <span>PUBG Mobile</span>
+                            </div>
+                            <div class="game-select-option" onclick="chooseGame('mlbb','Mobile Legends: Bang Bang','mobilelegendes.png','🗡️',this)">
+                                <img class="game-select-logo" src="mobilelegendes.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <span class="game-select-logo-emoji" style="display:none;">🗡️</span>
+                                <span>Mobile Legends: Bang Bang</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Hidden select for compatibility -->
+                    <select id="game-select" style="display:none;" onchange="updateGamePackages()">
+                        <option value="freefire">Garena Free Fire</option>
+                        <option value="roblox">Roblox</option>
+                        <option value="fortnite">Fortnite</option>
+                        <option value="pubg">PUBG Mobile</option>
+                        <option value="mlbb">Mobile Legends: Bang Bang</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>UID / ID du compte</label>
+                    <input type="text" id="game-uid" placeholder="Votre identifiant en jeu">
+                </div>
+            </div>
+
+            <p class="section-title">Choisir un pack</p>
+            <div class="pkg-grid" id="pkg-grid"></div>
+
+            <div class="price-box" id="price-summary" style="display:none;">
+                <div class="price-row"><span>Pack sélectionné</span><span id="sum-pack">–</span></div>
+                <div class="price-row"><span>Commission (≈15%)</span><span id="sum-fee">–</span></div>
+                <div class="price-row total"><span>Total</span><span id="sum-total">–</span></div>
+            </div>
+
+            <button class="btn" id="pay-btn" onclick="processTopUp()" style="display:none;">
+                <i class="fas fa-bolt"></i> Confirmer le paiement
+            </button>
+
+            <div style="margin-top: 10px; font-size: 0.75rem; color: var(--muted); text-align: center; padding: 0 10px;">
+                ⚠️ Vérifiez votre UID avant de confirmer. Le paiement est <strong>non remboursable</strong>.
+            </div>
+        </section>
+
+        <!-- HISTORY -->
+        <section id="history" class="view">
+            <p class="page-title">Historique</p>
+            <p class="page-subtitle">Toutes vos transactions</p>
+            <div id="history-items">
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <p>Aucune transaction pour l'instant</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROFILE -->
+        <section id="profile" class="view">
+            <p class="page-title">Profil</p>
+            <p class="page-subtitle">Informations de votre compte</p>
+
+            <div class="card" style="text-align:center;">
+                <div class="profile-avatar" id="profile-avatar">?</div>
+                <p style="font-family:'Syne',sans-serif; font-weight:700; font-size:1.1rem;" id="profile-name">–</p>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;" id="profile-email">–</p>
+            </div>
+
+            <div class="card">
+                <div class="price-row">
+                    <span style="color:var(--muted);">Solde actuel</span>
+                    <span id="profile-balance" style="font-weight:700; color:var(--accent2);">$0.00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="price-row">
+                    <span style="color:var(--muted);">Total rechargé</span>
+                    <span id="profile-total-in" style="font-weight:600;">$0.00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="price-row">
+                    <span style="color:var(--muted);">Total dépensé</span>
+                    <span id="profile-total-out" style="font-weight:600;">$0.00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="price-row">
+                    <span style="color:var(--muted);">Transactions</span>
+                    <span id="profile-tx-count" style="font-weight:600;">0</span>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="doLogout()">
+                <i class="fas fa-sign-out-alt"></i> Se déconnecter
+            </button>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" id="nav-0" onclick="switchView('home', 0)"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="nav-item" id="nav-1" onclick="switchView('history', 1)"><i class="fas fa-list-ul"></i><span>Activités</span></div>
+        <div class="nav-item" id="nav-2" onclick="switchView('recharge', 2)"><i class="fas fa-wallet"></i><span>Wallet</span></div>
+        <div class="nav-item" id="nav-3" onclick="switchView('topup', 3)"><i class="fas fa-gamepad"></i><span>Top-Up</span></div>
+        <div class="nav-item" id="nav-4" onclick="switchView('profile', 4)"><i class="fas fa-user"></i><span>Profil</span></div>
+    </nav>
+</div>
+
+<!-- FIREBASE SDK v11 -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import {
+        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+        signOut, onAuthStateChanged, updateProfile
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+        getDatabase, ref, set, get, push, update, onValue, serverTimestamp, query, orderByChild
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPNboYrEjN5D3a0n9cstdubkVU-lFfVFE",
+        authDomain: "football-manager-29858.firebaseapp.com",
+        databaseURL: "https://football-manager-29858-default-rtdb.firebaseio.com",
+        projectId: "football-manager-29858",
+        storageBucket: "football-manager-29858.firebasestorage.app",
+        messagingSenderId: "519217417347",
+        appId: "1:519217417347:web:880b068aae731c84291fb6",
+        measurementId: "G-VDDRRB21CT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // ===== GAME DATA =====
+    const GAMES = {
+        freefire: {
+            name: 'Free Fire', icon: '🔥', currency: 'Diamonds',
+            commission: 0.15,
+            packages: [
+                { label: '100 Diamonds', price: 2 },
+                { label: '310 Diamonds', price: 6 },
+                { label: '520 Diamonds', price: 10 },
+                { label: '1060 Diamonds', price: 20 },
+            ]
+        },
+        roblox: {
+            name: 'Roblox', icon: '🟥', currency: 'Robux',
+            commission: 0.12,
+            packages: [
+                { label: '400 Robux', price: 5 },
+                { label: '800 Robux', price: 10 },
+                { label: '1700 Robux', price: 20 },
+                { label: '4500 Robux', price: 50 },
+            ]
+        },
+        fortnite: {
+            name: 'Fortnite', icon: '⚡', currency: 'V-Bucks',
+            commission: 0.10,
+            packages: [
+                { label: '1000 V-Bucks', price: 8 },
+                { label: '2800 V-Bucks', price: 20 },
+                { label: '5000 V-Bucks', price: 35 },
+                { label: '13500 V-Bucks', price: 90 },
+            ]
+        },
+        pubg: {
+            name: 'PUBG Mobile', icon: '🪖', currency: 'UC',
+            commission: 0.14,
+            packages: [
+                { label: '60 UC', price: 1.5 },
+                { label: '325 UC', price: 5 },
+                { label: '660 UC', price: 10 },
+                { label: '1800 UC', price: 25 },
+            ]
+        },
+        mlbb: {
+            name: 'Mobile Legends', icon: '🗡️', currency: 'Diamonds',
+            commission: 0.16,
+            packages: [
+                { label: '50 Diamonds', price: 1 },
+                { label: '250 Diamonds', price: 5 },
+                { label: '500 Diamonds', price: 9 },
+                { label: '1000 Diamonds', price: 18 },
+            ]
+        }
+    };
+
+    // ===== STATE =====
+    let currentUser = null;
+    let userData = { balance: 0, pendingBalance: 0, totalIn: 0, totalOut: 0, txCount: 0 };
+    let selectedPkg = null;
+    let currentGameKey = 'freefire';
+
+    // ===== EXPOSE GLOBALS =====
+    window.GAMES = GAMES;
+    window.selectedPkg = null;
+    window.currentGameKey = 'freefire';
+
+    // ===== AUTH STATE LISTENER =====
+    onAuthStateChanged(auth, async (user) => {
+        document.getElementById('loading-overlay').style.display = 'none';
+
+        if (user) {
+            currentUser = user;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'block';
+
+            // Set header info
+            document.getElementById('header-uid').textContent = 'ID: ' + user.uid.slice(0, 6).toUpperCase();
+
+            // Initialize user data if new
+            const userRef = ref(db, `users/${user.uid}/profile`);
+            const snap = await get(userRef);
+            if (!snap.exists()) {
+                await set(userRef, {
+                    email: user.email,
+                    name: user.displayName || user.email.split('@')[0],
+                    balance: 0,
+                    pendingBalance: 0,
+                    totalIn: 0,
+                    totalOut: 0,
+                    txCount: 0,
+                    createdAt: serverTimestamp()
+                });
+            }
+
+            // Listen to user data
+            onValue(ref(db, `users/${user.uid}/profile`), (snap) => {
+                if (snap.exists()) {
+                    const d = snap.val();
+                    userData = d;
+                    updateBalanceUI(d.balance || 0, d.pendingBalance || 0);
+                    updateProfileUI(d);
+                }
+            });
+
+            // Listen to transactions
+            onValue(ref(db, `users/${user.uid}/transactions`), (snap) => {
+                renderHistory(snap);
+            });
+
+            updateGamePackages();
+
+        } else {
+            currentUser = null;
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('app-screen').style.display = 'none';
+        }
+    });
+
+    // ===== AUTH FUNCTIONS =====
+    window.authTab = (tab) => {
+        document.getElementById('tab-login').style.display = tab === 'login' ? 'block' : 'none';
+        document.getElementById('tab-register').style.display = tab === 'register' ? 'block' : 'none';
+        document.querySelectorAll('.auth-tab').forEach((t, i) => {
+            t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+        });
+        hideAuthError();
+    };
+
+    window.doLogin = async () => {
+        const email = document.getElementById('login-email').value.trim();
+        const pass = document.getElementById('login-pass').value;
+        if (!email || !pass) { showAuthError('Remplissez tous les champs.'); return; }
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (e) {
+            showAuthError(translateFirebaseError(e.code));
+        }
+    };
+
+    window.doRegister = async () => {
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const pass = document.getElementById('reg-pass').value;
+        if (!name || !email || !pass) { showAuthError('Remplissez tous les champs.'); return; }
+        if (pass.length < 6) { showAuthError('Mot de passe: minimum 6 caractères.'); return; }
+        try {
+            const cred = await createUserWithEmailAndPassword(auth, email, pass);
+            await updateProfile(cred.user, { displayName: name });
+        } catch (e) {
+            showAuthError(translateFirebaseError(e.code));
+        }
+    };
+
+    window.doLogout = async () => {
+        await signOut(auth);
+    };
+
+    function showAuthError(msg) {
+        const el = document.getElementById('auth-error');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+    function hideAuthError() {
+        document.getElementById('auth-error').style.display = 'none';
+    }
+
+    // ===== UI UPDATES =====
+    function updateBalanceUI(bal, pending) {
+        document.getElementById('main-balance').textContent = '$' + (bal || 0).toFixed(2);
+        const pendEl = document.getElementById('pending-balance');
+        const pendAmt = document.getElementById('pending-amt');
+        if (pending > 0) {
+            pendEl.style.display = 'block';
+            pendAmt.textContent = '$' + pending.toFixed(2);
+        } else {
+            pendEl.style.display = 'none';
+        }
+    }
+
+    function updateProfileUI(d) {
+        const name = d.name || currentUser.email.split('@')[0];
+        const initials = name.slice(0, 2).toUpperCase();
+        document.getElementById('profile-avatar').textContent = initials;
+        document.getElementById('profile-name').textContent = name;
+        document.getElementById('profile-email').textContent = d.email || currentUser.email;
+        document.getElementById('profile-balance').textContent = '$' + (d.balance || 0).toFixed(2);
+        document.getElementById('profile-total-in').textContent = '$' + (d.totalIn || 0).toFixed(2);
+        document.getElementById('profile-total-out').textContent = '$' + (d.totalOut || 0).toFixed(2);
+        document.getElementById('profile-tx-count').textContent = d.txCount || 0;
+    }
+
+    function renderHistory(snap) {
+        const container = document.getElementById('history-items');
+        const homeRecent = document.getElementById('home-recent');
+        const transactions = [];
+
+        if (snap.exists()) {
+            snap.forEach(child => {
+                transactions.unshift({ id: child.key, ...child.val() });
+            });
+        }
+
+        if (transactions.length === 0) {
+            container.innerHTML = `<div class="empty-state"><i class="fas fa-receipt"></i><p>Aucune transaction</p></div>`;
+            homeRecent.innerHTML = `<div class="empty-state" style="padding:20px;"><i class="fas fa-receipt"></i><p>Aucune activité récente</p></div>`;
+            return;
+        }
+
+        const makeItem = (tx) => {
+            const isDebit = tx.type === 'topup';
+            const badge = tx.status === 'pending'
+                ? '<span class="badge badge-pending">En attente</span>'
+                : '<span class="badge badge-success">Succès</span>';
+            const amtColor = isDebit ? 'var(--danger)' : 'var(--success)';
+            const amtPrefix = isDebit ? '-' : '+';
+            const date = tx.createdAt ? new Date(tx.createdAt).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : 'Récent';
+
+            // Build icon: use game image if topup, else wallet icon
+            const GAME_IMGS = { freefire:'freefire.png', roblox:'roblox.png', fortnite:'fortnite.png', pubg:'purgmobile.png', mlbb:'mobilelegendes.png' };
+            let iconHtml;
+            if (isDebit && tx.gameKey && GAME_IMGS[tx.gameKey]) {
+                iconHtml = `<img src="${GAME_IMGS[tx.gameKey]}" alt="${tx.gameName||''}" style="width:40px;height:40px;border-radius:12px;object-fit:cover;" onerror="this.outerHTML='<span style=\\'font-size:1.3rem;\\'>${tx.gameIcon||'🎮'}</span>'">`;
+            } else if (isDebit) {
+                iconHtml = `<span style="font-size:1.3rem;">${tx.gameIcon||'🎮'}</span>`;
+            } else {
+                iconHtml = `<i class="fas fa-wallet" style="font-size:1.1rem;color:var(--success);"></i>`;
+            }
+
+            return `
+                <div class="history-item">
+                    <div class="history-left">
+                        <div class="history-icon">${iconHtml}</div>
+                        <div>
+                            <div class="history-name">${tx.label}</div>
+                            <div class="history-date">${date}</div>
+                            <div style="margin-top:3px;">${badge}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="history-amount" style="color:${amtColor};">${amtPrefix}$${Number(tx.amount).toFixed(2)}</div>
+                        ${tx.uid ? `<div style="font-size:0.65rem; color:var(--muted); margin-top:2px;">UID: ${tx.uid}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        };
+
+        container.innerHTML = transactions.map(makeItem).join('');
+        homeRecent.innerHTML = transactions.slice(0, 3).map(makeItem).join('');
+    }
+
+    // ===== RECHARGE =====
+    window.submitRecharge = async () => {
+        if (!currentUser) return;
+
+        const amount = parseFloat(document.getElementById('rch-amount').value);
+        const method = document.getElementById('rch-method').value;
+        const transcode = document.getElementById('rch-transcode').value.trim();
+        const email = document.getElementById('rch-email').value.trim();
+
+        const errEl = document.getElementById('recharge-error');
+        const sucEl = document.getElementById('recharge-success');
+        errEl.style.display = 'none';
+        sucEl.style.display = 'none';
+
+        if (!amount || amount <= 0) { errEl.textContent = 'Montant invalide.'; errEl.style.display = 'block'; return; }
+        if (!transcode) { errEl.textContent = 'Le transcode est requis.'; errEl.style.display = 'block'; return; }
+        if (!email) { errEl.textContent = 'L\'email est requis.'; errEl.style.display = 'block'; return; }
+
+        try {
+            // Save recharge request
+            const txRef = push(ref(db, `users/${currentUser.uid}/transactions`));
+            await set(txRef, {
+                type: 'recharge',
+                label: `Recharge Natcash`,
+                amount: amount,
+                method: method,
+                transcode: transcode,
+                email: email,
+                status: 'pending',
+                createdAt: Date.now()
+            });
+
+            // Save to admin recharge requests
+            await set(ref(db, `recharge_requests/${txRef.key}`), {
+                userId: currentUser.uid,
+                email: email,
+                amount: amount,
+                method: method,
+                transcode: transcode,
+                status: 'pending',
+                createdAt: Date.now()
+            });
+
+            // Add to pending balance
+            const newPending = (userData.pendingBalance || 0) + amount;
+            await update(ref(db, `users/${currentUser.uid}/profile`), { pendingBalance: newPending });
+
+            sucEl.textContent = '✅ Demande envoyée ! Votre solde sera crédité après vérification (5–15 min).';
+            sucEl.style.display = 'block';
+
+            document.getElementById('rch-amount').value = '';
+            document.getElementById('rch-transcode').value = '';
+            document.getElementById('rch-email').value = '';
+
+        } catch (e) {
+            errEl.textContent = 'Erreur: ' + e.message;
+            errEl.style.display = 'block';
+        }
+    };
+
+    // ===== TOP-UP PACKAGES =====
+    const GAME_IMAGES = {
+        freefire: 'freefire.png',
+        roblox: 'roblox.png',
+        fortnite: 'fortnite.png',
+        pubg: 'purgmobile.png',
+        mlbb: 'mobilelegendes.png'
+    };
+
+    window.updateGamePackages = () => {
+        const gameKey = document.getElementById('game-select').value;
+        currentGameKey = gameKey;
+        window.currentGameKey = gameKey;
+        const game = GAMES[gameKey];
+        selectedPkg = null;
+        window.selectedPkg = null;
+        document.getElementById('price-summary').style.display = 'none';
+        document.getElementById('pay-btn').style.display = 'none';
+
+        const grid = document.getElementById('pkg-grid');
+        const imgSrc = GAME_IMAGES[gameKey] || '';
+
+        // Show game header banner above packages
+        let pkgHeader = document.getElementById('pkg-game-header');
+        if (!pkgHeader) {
+            pkgHeader = document.createElement('div');
+            pkgHeader.id = 'pkg-game-header';
+            pkgHeader.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;';
+            grid.parentNode.insertBefore(pkgHeader, grid);
+        }
+        pkgHeader.innerHTML = `
+            <div style="width:40px;height:40px;border-radius:10px;overflow:hidden;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <img src="${imgSrc}" alt="${game.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                <span style="font-size:1.3rem;display:none;">${game.icon}</span>
+            </div>
+            <div>
+                <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;">${game.name}</div>
+                <div style="font-size:0.72rem;color:var(--muted);">Monnaie: ${game.currency} · Commission: ${(game.commission * 100).toFixed(0)}%</div>
+            </div>
+        `;
+
+        grid.innerHTML = game.packages.map((pkg, i) => `
+            <div class="pkg-option" id="pkg-${i}" onclick="selectPackage(${i})">
+                <div class="pkg-currency">${game.currency}</div>
+                <div class="pkg-amount">${pkg.label}</div>
+                <div class="pkg-price">$${pkg.price.toFixed(2)}</div>
+            </div>
+        `).join('');
+    };
+
+    window.selectPackage = (idx) => {
+        const gameKey = document.getElementById('game-select').value;
+        const game = GAMES[gameKey];
+        const pkg = game.packages[idx];
+
+        document.querySelectorAll('.pkg-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById(`pkg-${idx}`).classList.add('selected');
+
+        selectedPkg = { ...pkg, gameKey, gameName: game.name, gameIcon: game.icon, commission: game.commission, pkgIdx: idx };
+        window.selectedPkg = selectedPkg;
+
+        const fee = pkg.price * game.commission;
+        const total = pkg.price + fee;
+
+        document.getElementById('sum-pack').textContent = `$${pkg.price.toFixed(2)}`;
+        document.getElementById('sum-fee').textContent = `$${fee.toFixed(2)}`;
+        document.getElementById('sum-total').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('price-summary').style.display = 'block';
+        document.getElementById('pay-btn').style.display = 'block';
+    };
+
+    window.processTopUp = async () => {
+        if (!currentUser || !window.selectedPkg) return;
+        const pkg = window.selectedPkg;
+        const uid = document.getElementById('game-uid').value.trim();
+        const errEl = document.getElementById('topup-error');
+        const sucEl = document.getElementById('topup-success');
+        errEl.style.display = 'none';
+        sucEl.style.display = 'none';
+
+        if (!uid) { errEl.textContent = 'Entrez votre UID / ID de jeu.'; errEl.style.display = 'block'; return; }
+
+        const fee = pkg.price * pkg.commission;
+        const total = pkg.price + fee;
+        const currentBal = userData.balance || 0;
+
+        if (currentBal < total) {
+            errEl.textContent = `Solde insuffisant. Vous avez $${currentBal.toFixed(2)}, il faut $${total.toFixed(2)}.`;
+            errEl.style.display = 'block';
+            return;
+        }
+
+        try {
+            const newBalance = currentBal - total;
+            const newTotalOut = (userData.totalOut || 0) + total;
+            const newTxCount = (userData.txCount || 0) + 1;
+
+            // Deduct balance
+            await update(ref(db, `users/${currentUser.uid}/profile`), {
+                balance: newBalance,
+                totalOut: newTotalOut,
+                txCount: newTxCount
+            });
+
+            // Save transaction
+            const txRef = push(ref(db, `users/${currentUser.uid}/transactions`));
+            await set(txRef, {
+                type: 'topup',
+                label: `${pkg.gameName} – ${pkg.label}`,
+                gameIcon: pkg.gameIcon,
+                gameKey: pkg.gameKey,
+                amount: total,
+                basePrice: pkg.price,
+                fee: fee,
+                uid: uid,
+                status: 'pending',
+                createdAt: Date.now()
+            });
+
+            // Save to admin orders
+            await set(ref(db, `topup_orders/${txRef.key}`), {
+                userId: currentUser.uid,
+                email: currentUser.email,
+                game: pkg.gameName,
+                pack: pkg.label,
+                uid: uid,
+                amount: total,
+                status: 'pending',
+                createdAt: Date.now()
+            });
+
+            sucEl.textContent = `✅ Commande envoyée pour ${pkg.gameName} (${pkg.label}) – UID: ${uid}. Traitement en cours !`;
+            sucEl.style.display = 'block';
+
+            // Reset
+            document.getElementById('game-uid').value = '';
+            selectedPkg = null;
+            window.selectedPkg = null;
+            document.querySelectorAll('.pkg-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('price-summary').style.display = 'none';
+            document.getElementById('pay-btn').style.display = 'none';
+
+            showToast('🎮 Top-Up envoyé !');
+
+        } catch (e) {
+            errEl.textContent = 'Erreur: ' + e.message;
+            errEl.style.display = 'block';
+        }
+    };
+
+    // ===== OPEN GAME FROM HOME =====
+    window.openGame = (gameKey) => {
+        switchView('topup', 3);
+        document.getElementById('game-select').value = gameKey;
+        updateGamePackages();
+    };
+
+    // ===== NAVIGATION =====
+    const views = ['home', 'history', 'recharge', 'topup', 'profile'];
+    window.switchView = (viewId, navIdx) => {
+        views.forEach(v => {
+            document.getElementById(v).classList.toggle('active', v === viewId);
+        });
+        if (navIdx !== undefined) {
+            for (let i = 0; i < 5; i++) {
+                document.getElementById(`nav-${i}`).classList.toggle('active', i === navIdx);
+            }
+        }
+        window.scrollTo(0, 0);
+
+        // Hide alerts when switching
+        ['recharge-error','recharge-success','topup-error','topup-success','order-error'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+    };
+
+    // ===== TOAST =====
+    window.showToast = (msg) => {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2800);
+    };
+
+    // ===== ERROR TRANSLATION =====
+    function translateFirebaseError(code) {
+        const map = {
+            'auth/email-already-in-use': 'Cet email est déjà utilisé.',
+            'auth/invalid-email': 'Email invalide.',
+            'auth/weak-password': 'Mot de passe trop faible (6 chars min).',
+            'auth/user-not-found': 'Aucun compte avec cet email.',
+            'auth/wrong-password': 'Mot de passe incorrect.',
+            'auth/invalid-credential': 'Email ou mot de passe incorrect.',
+            'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.'
+        };
+        return map[code] || 'Une erreur est survenue. Réessayez.';
+    }
+
+    // ===== CUSTOM GAME DROPDOWN =====
+    window.toggleGameDropdown = () => {
+        const dd = document.getElementById('game-select-dropdown');
+        const chevron = document.getElementById('gsd-chevron');
+        dd.classList.toggle('open');
+        chevron.style.transform = dd.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+    };
+
+    window.chooseGame = (key, name, imgSrc, emoji, el) => {
+        // Update hidden select
+        const sel = document.getElementById('game-select');
+        sel.value = key;
+
+        // Update display
+        const iconEl = document.getElementById('gsd-icon');
+        const nameEl = document.getElementById('gsd-name');
+
+        // Try image first, fallback to emoji
+        const img = new Image();
+        img.onload = () => {
+            iconEl.innerHTML = `<img src="${imgSrc}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">`;
+        };
+        img.onerror = () => {
+            iconEl.textContent = emoji;
+        };
+        img.src = imgSrc;
+        nameEl.textContent = name;
+
+        // Mark selected
+        document.querySelectorAll('.game-select-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+
+        // Close dropdown
+        const dd = document.getElementById('game-select-dropdown');
+        dd.classList.remove('open');
+        document.getElementById('gsd-chevron').style.transform = 'rotate(0deg)';
+
+        // Update packages
+        updateGamePackages();
+    };
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+        const wrapper = document.getElementById('game-select-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            const dd = document.getElementById('game-select-dropdown');
+            if (dd) {
+                dd.classList.remove('open');
+                document.getElementById('gsd-chevron').style.transform = 'rotate(0deg)';
+            }
+        }
+    });
+
+    // Init packages on load
+    setTimeout(() => {
+        if (document.getElementById('game-select')) updateGamePackages();
+    }, 500);
+</script>
+
+</body>
+</html>
