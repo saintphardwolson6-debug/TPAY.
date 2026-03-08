@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TPay – Gaming Wallet</title>
+
+    <!-- PushAlert Unified Code -->
+    <script type="text/javascript">
+        (function(d, t) {
+            var g = d.createElement(t),
+            s = d.getElementsByTagName(t)[0];
+            g.src = "https://cdn.pushalert.co/unified_2a0c08c5be74d114706df1eff3be7e3f.js";
+            s.parentNode.insertBefore(g, s);
+        }(document, "script"));
+    </script>
+    <!-- End PushAlert Unified Code -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1416,6 +1427,39 @@
     // Load rate on startup
     loadExchangeRate();
 
+    // ===== PUSH NOTIFICATIONS (PushAlert) =====
+    /**
+     * sendPushNotification — envoie une notification push à l'utilisateur courant via PushAlert.
+     * PushAlert doit être abonné (l'utilisateur a accepté les notifications).
+     * @param {string} title   - Titre de la notification
+     * @param {string} message - Corps du message
+     * @param {string} url     - URL à ouvrir au clic (optionnel)
+     */
+    function sendPushNotification(title, message, url = window.location.href) {
+        try {
+            // PushAlert expose window.PushAlertCo après chargement du script unifié
+            if (window.PushAlertCo && typeof window.PushAlertCo.triggerNotification === 'function') {
+                window.PushAlertCo.triggerNotification({
+                    title: title,
+                    message: message,
+                    url: url
+                });
+            } else {
+                // Fallback : si l'API PushAlert n'est pas encore prête, on attend et réessaie
+                const waitAndSend = setInterval(() => {
+                    if (window.PushAlertCo && typeof window.PushAlertCo.triggerNotification === 'function') {
+                        clearInterval(waitAndSend);
+                        window.PushAlertCo.triggerNotification({ title, message, url });
+                    }
+                }, 500);
+                // Timeout après 10s pour éviter une boucle infinie
+                setTimeout(() => clearInterval(waitAndSend), 10000);
+            }
+        } catch (err) {
+            console.warn('[TPay Push] Notification non envoyée:', err);
+        }
+    }
+
     // ===== RECHARGE =====
     window.submitRecharge = async () => {
         if (!currentUser) return;
@@ -1471,6 +1515,12 @@
 
             sucEl.textContent = `✅ Demande envoyée ! ${htgAmount.toLocaleString('fr')} HTG ≈ $${amount.toFixed(2)} USD — Votre solde sera crédité après vérification (5–15 min).`;
             sucEl.style.display = 'block';
+
+            // 🔔 Notification push — dépôt reçu
+            sendPushNotification(
+                '💳 Dépôt reçu – TPay',
+                `Votre dépôt de ${htgAmount.toLocaleString('fr')} HTG (≈ $${amount.toFixed(2)}) est en cours de vérification. Vous serez crédité dans 5–15 min.`
+            );
 
             document.getElementById('rch-amount-htg').value = '';
             document.getElementById('rch-amount').value = '';
@@ -1617,6 +1667,12 @@
 
             sucEl.textContent = `✅ Commande envoyée pour ${pkg.gameName} (${pkg.label}) – UID: ${uid}. Traitement en cours !`;
             sucEl.style.display = 'block';
+
+            // 🔔 Notification push — top-up gaming envoyé
+            sendPushNotification(
+                `🎮 Top-Up ${pkg.gameName} – TPay`,
+                `Votre commande ${pkg.label} pour l'UID ${uid} est en traitement. Vous recevrez vos ressources très bientôt !`
+            );
 
             // Reset
             document.getElementById('game-uid').value = '';
