@@ -685,6 +685,133 @@
         }
         .htg-preview-label { color: var(--muted); }
         .htg-preview-value { color: var(--success); font-weight: 700; font-family: 'Syne', sans-serif; }
+
+        /* ========= SECURITY BADGE ========= */
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .security-badge.safe { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+        .security-badge.warning { background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
+        .security-badge.danger { background: rgba(244,63,94,0.15); color: var(--danger); border: 1px solid rgba(244,63,94,0.3); }
+
+        /* ========= GEO SECURITY BANNER ========= */
+        #geo-security-banner {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: rgba(244,63,94,0.08);
+            border: 1px solid rgba(244,63,94,0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            font-size: 0.78rem;
+            color: var(--danger);
+        }
+        #geo-security-banner.show { display: flex; }
+
+        /* ========= NTFY NOTIFICATION PANEL ========= */
+        .notif-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+        .notif-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .notif-toggle-label { font-size: 0.85rem; font-weight: 600; }
+        .notif-toggle-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+        .toggle-switch {
+            width: 44px; height: 24px;
+            background: var(--border);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .toggle-switch.on { background: var(--accent); }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 18px; height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 3px; left: 3px;
+            transition: left 0.2s;
+        }
+        .toggle-switch.on::after { left: 23px; }
+
+        /* ========= EMAIL VALIDATION INDICATOR ========= */
+        .email-status {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+        }
+        .email-status.valid { background: rgba(16,185,129,0.1); color: var(--success); display: flex; }
+        .email-status.invalid { background: rgba(244,63,94,0.1); color: var(--danger); display: flex; }
+        .email-status.disposable { background: rgba(245,158,11,0.1); color: var(--warning); display: flex; }
+
+        /* ========= SECURITY PANEL IN PROFILE ========= */
+        .security-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+        .security-row-left { display: flex; align-items: center; gap: 10px; }
+        .security-row-icon {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: var(--surface2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem;
+        }
+        .security-row-text { font-size: 0.82rem; font-weight: 600; }
+        .security-row-sub { font-size: 0.68rem; color: var(--muted); margin-top: 1px; }
+
+        /* ========= LOCATION CARD ========= */
+        .location-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+        .location-card-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .location-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .location-row:last-child { margin-bottom: 0; }
+        .location-key { color: var(--muted); }
+        .location-val { font-weight: 600; }
+
+        /* ========= PWD BREACH INDICATOR ========= */
+        .pwd-breach-indicator {
+            display: none;
+            font-size: 0.72rem;
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            align-items: center;
+            gap: 6px;
+        }
+        .pwd-breach-indicator.safe { background: rgba(16,185,129,0.1); color: var(--success); display: flex; }
+        .pwd-breach-indicator.breached { background: rgba(244,63,94,0.1); color: var(--danger); display: flex; }
     </style>
 </head>
 <body>
@@ -734,11 +861,13 @@
             </div>
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" id="reg-email" placeholder="exemple@email.com">
+                <input type="email" id="reg-email" placeholder="exemple@email.com" oninput="debouncedEmailCheck(this.value, 'reg-email-status')">
+                <div class="email-status" id="reg-email-status"></div>
             </div>
             <div class="form-group">
                 <label>Mot de passe</label>
-                <input type="password" id="reg-pass" placeholder="Min. 6 caractères">
+                <input type="password" id="reg-pass" placeholder="Min. 6 caractères" oninput="debouncedPwdCheck(this.value)">
+                <div class="pwd-breach-indicator" id="reg-pwd-status"></div>
             </div>
             <button class="btn" onclick="doRegister()">Créer mon compte</button>
         </div>
@@ -759,6 +888,16 @@
 
         <!-- HOME -->
         <section id="home" class="view active">
+
+            <!-- GEO SECURITY BANNER (shown if VPN/proxy/Tor detected) -->
+            <div id="geo-security-banner">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <div style="font-weight:700;">Connexion suspecte détectée</div>
+                    <div id="geo-security-detail" style="font-size:0.7rem; margin-top:2px; opacity:0.8;"></div>
+                </div>
+            </div>
+
             <div class="wallet-card">
                 <p class="balance-label">Mon Solde</p>
                 <p class="balance-amount" id="main-balance">$0.00</p>
@@ -820,6 +959,18 @@
 
             <!-- Recent transactions -->
             <p class="section-title">Activité récente</p>
+
+            <!-- Notification Subscribe Card -->
+            <div class="notif-panel" id="notif-panel" style="margin-bottom:14px;">
+                <div class="notif-toggle">
+                    <div>
+                        <div class="notif-toggle-label"><i class="fas fa-bell" style="color:var(--accent2);margin-right:6px;"></i>Notifications Push</div>
+                        <div class="notif-toggle-sub" id="notif-status-text">Activez pour recevoir vos alertes de transaction</div>
+                    </div>
+                    <div class="toggle-switch" id="notif-toggle-switch" onclick="toggleNotifications()"></div>
+                </div>
+            </div>
+
             <div id="home-recent"></div>
         </section>
 
@@ -886,7 +1037,8 @@
                 </div>
                 <div class="form-group">
                     <label>Email de confirmation</label>
-                    <input type="email" id="rch-email" placeholder="votre@email.com">
+                    <input type="email" id="rch-email" placeholder="votre@email.com" oninput="debouncedEmailCheck(this.value, 'rch-email-status')">
+                    <div class="email-status" id="rch-email-status"></div>
                 </div>
                 <button class="btn btn-success" onclick="submitRecharge()">
                     <i class="fas fa-paper-plane"></i> Valider la recharge
@@ -1022,6 +1174,55 @@
             <button class="btn btn-secondary" onclick="doLogout()">
                 <i class="fas fa-sign-out-alt"></i> Se déconnecter
             </button>
+
+            <!-- SECURITY PANEL -->
+            <div style="margin-top:16px;">
+                <p class="section-title">Sécurité & Connexion</p>
+                <div class="card" style="padding:12px 16px;">
+                    <div class="security-row">
+                        <div class="security-row-left">
+                            <div class="security-row-icon">🌍</div>
+                            <div>
+                                <div class="security-row-text">Localisation</div>
+                                <div class="security-row-sub" id="sec-location">Chargement…</div>
+                            </div>
+                        </div>
+                        <div id="sec-location-badge"></div>
+                    </div>
+                    <div class="divider" style="margin:8px 0;"></div>
+                    <div class="security-row">
+                        <div class="security-row-left">
+                            <div class="security-row-icon">🔒</div>
+                            <div>
+                                <div class="security-row-text">VPN / Proxy / Tor</div>
+                                <div class="security-row-sub" id="sec-vpn-text">Vérification…</div>
+                            </div>
+                        </div>
+                        <div id="sec-vpn-badge"></div>
+                    </div>
+                    <div class="divider" style="margin:8px 0;"></div>
+                    <div class="security-row">
+                        <div class="security-row-left">
+                            <div class="security-row-icon">📡</div>
+                            <div>
+                                <div class="security-row-text">Fournisseur (ISP)</div>
+                                <div class="security-row-sub" id="sec-isp">–</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider" style="margin:8px 0;"></div>
+                    <div class="security-row">
+                        <div class="security-row-left">
+                            <div class="security-row-icon">⏰</div>
+                            <div>
+                                <div class="security-row-text">Timezone</div>
+                                <div class="security-row-sub" id="sec-timezone">–</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </section>
 
     </main>
@@ -1126,6 +1327,7 @@
     window.GAMES = GAMES;
     window.selectedPkg = null;
     window.currentGameKey = 'freefire';
+    window._db = db; // expose for geo security logging
 
     // ===== AUTH STATE LISTENER =====
     onAuthStateChanged(auth, async (user) => {
@@ -1133,6 +1335,7 @@
 
         if (user) {
             currentUser = user;
+            window._currentUser = user; // expose for security logging
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'block';
 
@@ -1743,6 +1946,308 @@
     setTimeout(() => {
         if (document.getElementById('game-select')) updateGamePackages();
     }, 500);
+</script>
+
+<!-- ===== NEW APIs: SECURITY, NOTIFICATIONS, VALIDATION ===== -->
+<script>
+
+// ============================================================
+// 1. IP GEOLOCATION + VPN/PROXY/TOR DETECTION (ip-api.com + ipwho.is)
+// ============================================================
+let geoData = null;
+
+async function loadGeoSecurity() {
+    // Try ip-api.com first (has VPN/proxy/hosting detection)
+    try {
+        const r = await fetch('http://ip-api.com/json?fields=status,country,countryCode,regionName,city,isp,org,proxy,hosting,timezone');
+        if (r.ok) {
+            const d = await r.json();
+            if (d.status === 'success') {
+                geoData = d;
+                applyGeoData(d);
+                return;
+            }
+        }
+    } catch(e) { console.warn('[GEO] ip-api failed, trying ipwho.is…'); }
+
+    // Fallback: ipwho.is (country, timezone, ISP)
+    try {
+        const r = await fetch('https://ipwho.is/');
+        if (r.ok) {
+            const d = await r.json();
+            if (d.success) {
+                geoData = { country: d.country, countryCode: d.country_code, regionName: d.region, city: d.city, isp: d.connection?.isp || '–', org: d.connection?.org || '–', timezone: d.timezone?.id || '–', proxy: false, hosting: false };
+                applyGeoData(geoData);
+            }
+        }
+    } catch(e) { console.warn('[GEO] ipwho.is also failed'); }
+}
+
+function applyGeoData(d) {
+    // Profile security panel
+    const locEl = document.getElementById('sec-location');
+    const locBadge = document.getElementById('sec-location-badge');
+    const vpnEl = document.getElementById('sec-vpn-text');
+    const vpnBadge = document.getElementById('sec-vpn-badge');
+    const ispEl = document.getElementById('sec-isp');
+    const tzEl = document.getElementById('sec-timezone');
+
+    if (locEl) locEl.textContent = `${d.city || '–'}, ${d.regionName || '–'}, ${d.country || '–'}`;
+    if (locBadge) locBadge.innerHTML = `<span class="security-badge safe">🌍 ${d.countryCode || ''}</span>`;
+    if (ispEl) ispEl.textContent = d.isp || d.org || '–';
+    if (tzEl) tzEl.textContent = d.timezone || '–';
+
+    const isSuspect = d.proxy || d.hosting;
+    if (vpnEl) vpnEl.textContent = isSuspect ? 'VPN / Proxy / Tor détecté !' : 'Aucun VPN/Proxy détecté';
+    if (vpnBadge) {
+        vpnBadge.innerHTML = isSuspect
+            ? `<span class="security-badge danger">⚠️ Suspect</span>`
+            : `<span class="security-badge safe">✅ OK</span>`;
+    }
+
+    // Show home security banner if suspicious
+    if (isSuspect) {
+        const banner = document.getElementById('geo-security-banner');
+        const detail = document.getElementById('geo-security-detail');
+        if (banner) {
+            banner.classList.add('show');
+            if (detail) detail.textContent = `Connexion via ${d.proxy ? 'Proxy/Tor' : 'Hébergeur/VPN'} depuis ${d.country || '?'}. Votre compte peut être restreint.`;
+        }
+    }
+
+    // Log security event to Firebase if suspicious
+    if (isSuspect && window._currentUser && window._db) {
+        try {
+            import("https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js").then(({ ref, push, set }) => {
+                push(ref(window._db, `security_events/${window._currentUser.uid}`), {
+                    type: 'suspicious_ip',
+                    country: d.country,
+                    isp: d.isp,
+                    proxy: d.proxy,
+                    hosting: d.hosting,
+                    timestamp: Date.now()
+                });
+            });
+        } catch(e) {}
+    }
+}
+
+// Run geo check on page load
+loadGeoSecurity();
+
+// ============================================================
+// 2. EMAIL VALIDATION (mailcheck.ai)
+// ============================================================
+const emailCheckCache = {};
+let emailDebounceTimer = null;
+
+function debouncedEmailCheck(email, statusId) {
+    clearTimeout(emailDebounceTimer);
+    const el = document.getElementById(statusId);
+    if (!el) return;
+    if (!email || !email.includes('@')) {
+        el.className = 'email-status';
+        return;
+    }
+    el.className = 'email-status';
+    el.innerHTML = '⏳ Vérification…';
+    el.style.display = 'flex';
+    emailDebounceTimer = setTimeout(() => checkEmail(email, statusId), 800);
+}
+
+async function checkEmail(email, statusId) {
+    const el = document.getElementById(statusId);
+    if (!el) return;
+    if (emailCheckCache[email]) { applyEmailResult(emailCheckCache[email], el); return; }
+    try {
+        const r = await fetch(`https://api.mailcheck.ai/email/${encodeURIComponent(email)}`);
+        if (!r.ok) throw new Error('mailcheck error');
+        const d = await r.json();
+        emailCheckCache[email] = d;
+        applyEmailResult(d, el);
+    } catch(e) {
+        el.className = 'email-status';
+    }
+}
+
+function applyEmailResult(d, el) {
+    if (d.disposable) {
+        el.className = 'email-status disposable';
+        el.innerHTML = '⚠️ Email jetable détecté – utilisez un email réel';
+    } else if (d.valid === false) {
+        el.className = 'email-status invalid';
+        el.innerHTML = '❌ Email invalide ou inexistant';
+    } else {
+        el.className = 'email-status valid';
+        el.innerHTML = '✅ Email valide';
+    }
+}
+
+window.debouncedEmailCheck = debouncedEmailCheck;
+
+// ============================================================
+// 3. PASSWORD BREACH CHECK (HaveIBeenPwned k-anonymity)
+// ============================================================
+let pwdDebounceTimer = null;
+
+function debouncedPwdCheck(password) {
+    clearTimeout(pwdDebounceTimer);
+    if (password.length < 6) return;
+    pwdDebounceTimer = setTimeout(() => checkPasswordBreach(password), 900);
+}
+
+async function checkPasswordBreach(password) {
+    const el = document.getElementById('reg-pwd-status');
+    if (!el) return;
+    try {
+        // k-anonymity: only send first 5 chars of SHA-1 hash
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+        const prefix = hashHex.slice(0, 5);
+        const suffix = hashHex.slice(5);
+
+        const r = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+        if (!r.ok) throw new Error('hibp error');
+        const text = await r.text();
+        const lines = text.split('\n');
+        const found = lines.find(l => l.startsWith(suffix));
+        const count = found ? parseInt(found.split(':')[1]) : 0;
+
+        if (count > 0) {
+            el.className = 'pwd-breach-indicator breached';
+            el.innerHTML = `⚠️ Ce mot de passe a été compromis ${count.toLocaleString()} fois – choisissez-en un autre`;
+        } else {
+            el.className = 'pwd-breach-indicator safe';
+            el.innerHTML = '✅ Mot de passe non compromis';
+        }
+    } catch(e) {
+        // Silent fail — don't block user
+    }
+}
+
+window.debouncedPwdCheck = debouncedPwdCheck;
+
+// ============================================================
+// 4. NTFY.SH PUSH NOTIFICATIONS (gratuit, sans compte)
+// ============================================================
+let ntfyEnabled = false;
+let ntfyTopic = null;
+
+function getNtfyTopic() {
+    // Generate a unique topic per user stored in localStorage
+    let topic = localStorage.getItem('tpay_ntfy_topic');
+    if (!topic) {
+        topic = 'tpay_' + Math.random().toString(36).substring(2, 14);
+        localStorage.setItem('tpay_ntfy_topic', topic);
+    }
+    return topic;
+}
+
+async function toggleNotifications() {
+    const sw = document.getElementById('notif-toggle-switch');
+    const statusText = document.getElementById('notif-status-text');
+
+    if (!ntfyEnabled) {
+        // Enable
+        ntfyTopic = getNtfyTopic();
+        ntfyEnabled = true;
+        sw.classList.add('on');
+        if (statusText) statusText.textContent = '🔔 Notifications activées via ntfy.sh';
+        // Send a test notification
+        await sendNtfyNotification('🎮 TPay Notifications', 'Vous recevrez maintenant des alertes pour vos transactions !', 'tada');
+        showToast('🔔 Notifications activées !');
+    } else {
+        // Disable
+        ntfyEnabled = false;
+        sw.classList.remove('on');
+        if (statusText) statusText.textContent = 'Activez pour recevoir vos alertes de transaction';
+        showToast('🔕 Notifications désactivées');
+    }
+}
+
+async function sendNtfyNotification(title, message, tags = 'bell') {
+    if (!ntfyEnabled || !ntfyTopic) return;
+    try {
+        await fetch(`https://ntfy.sh/${ntfyTopic}`, {
+            method: 'POST',
+            headers: {
+                'Title': title,
+                'Tags': tags,
+                'Priority': 'default',
+                'Content-Type': 'text/plain'
+            },
+            body: message
+        });
+    } catch(e) { /* silent fail */ }
+}
+
+window.toggleNotifications = toggleNotifications;
+window.sendNtfyNotification = sendNtfyNotification;
+
+// ============================================================
+// 5. PATCH processTopUp TO SEND NTFY NOTIFICATION
+// ============================================================
+const _origProcessTopUp = window.processTopUp;
+window.processTopUp = async function() {
+    // Intercept before
+    await _origProcessTopUp();
+    // After success, check if topup-success is visible
+    const suc = document.getElementById('topup-success');
+    if (suc && suc.style.display !== 'none') {
+        const pkg = window._lastPkg;
+        if (pkg) {
+            await sendNtfyNotification(
+                `🎮 Top-Up ${pkg.gameName} envoyé`,
+                `Pack: ${pkg.label} | Montant: $${(pkg.price * (1 + pkg.commission)).toFixed(2)}`,
+                'moneybag,gamepad'
+            );
+        } else {
+            await sendNtfyNotification('🎮 Top-Up envoyé', 'Votre commande de recharge gaming a été soumise.', 'gamepad');
+        }
+    }
+};
+
+// ============================================================
+// 6. PATCH submitRecharge TO SEND NTFY NOTIFICATION + save pkg ref
+// ============================================================
+const _origSelectPackage = window.selectPackage;
+window.selectPackage = function(idx) {
+    _origSelectPackage(idx);
+    window._lastPkg = window.selectedPkg;
+};
+
+// Patch recharge for notification
+document.addEventListener('DOMContentLoaded', () => {
+    const rechBtn = document.querySelector('button.btn.btn-success[onclick="submitRecharge()"]');
+    if (rechBtn) {
+        rechBtn.onclick = async function() {
+            // Run original
+            const sucEl = document.getElementById('recharge-success');
+            const prevDisplay = sucEl ? sucEl.style.display : 'none';
+            await window.submitRecharge();
+            if (sucEl && sucEl.style.display !== 'none' && prevDisplay === 'none') {
+                const htg = document.getElementById('rch-amount-htg').value || '?';
+                await sendNtfyNotification(
+                    '💰 Demande de recharge envoyée',
+                    `Montant: ${htg} HTG — En attente de vérification (5–15 min)`,
+                    'hourglass,moneybag'
+                );
+            }
+        };
+    }
+});
+
+// ============================================================
+// 7. EXPOSE FIREBASE REFERENCES FOR GEO SECURITY LOGGING
+// ============================================================
+// These are set by the module script after auth
+// We use a MutationObserver workaround since module vars aren't accessible here
+// Instead, the module script can expose them via window
+// (Already handled in the module with window._currentUser/_db assignments — see below)
+
 </script>
 
 </body>
